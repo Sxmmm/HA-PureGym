@@ -1,0 +1,12 @@
+{
+  "domain": "puregym_attendance",
+  "name": "PureGym Attendance",
+  "documentation": "https://github.com/nckltcha/puregym-attendance",
+  "issue_tracker": "https://github.com/nckltcha/puregym-attendance/issues",
+  "dependencies": [],
+  "iot_class": "cloud_polling",
+  "config_flow": true,
+  "codeowners": ["@nckltcha"],
+  "requirements": [],
+  "version": "0.0.1"
+}
