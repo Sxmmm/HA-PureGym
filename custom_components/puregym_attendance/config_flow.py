@@ -71,6 +71,7 @@ class PuregymAttendanceFlowHandler(
                 username, password, session
             )
             await client.async_get_data()
+            await client.async_add_executor_job(client.async_get_data)
             return True
         except Exception:  # pylint: disable=broad-except
             pass
