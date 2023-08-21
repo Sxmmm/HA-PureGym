@@ -26,38 +26,40 @@ class PuregymAttendanceApiClient:
     async def async_get_data(self) -> dict:
         """Add two numbers"""
         headers = {'Content-Type': 'application/x-www-form-urlencoded',
-                    'User-Agent': 'PureGym/1523 CFNetwork/1312 Darwin/21.0.0'}
+                   'User-Agent': 'PureGym/1523 CFNetwork/1312 Darwin/21.0.0'}
         authed = False
         home_gym_id = None
-        session = requests.session()
-        data = {
-            'grant_type': 'password',
-            'username': self._username,
-            'password': self._passeword,
-            'scope': 'pgcapi',
-            'client_id': 'ro.client'
-        }
-
-        response = session.post('https://auth.puregym.com/connect/token',
-                headers=headers, data=data)
-        if response.status_code == 200:
-            auth_json = response.json()
-            authed = True
-            headers['Authorization'] = 'Bearer '+auth_json['access_token']
-        else:
-            _LOGGER.error(response.raise_for_status())
-
-        if not authed:
-            _LOGGER.error("Permission Error")
-
-        response = session.get('https://capi.puregym.com/api/v1/member', headers=headers)
-        if response.status_code == 200:
-            home_gym_id = response.json()['homeGymId']
-        else:
-            _LOGGER.error('Response %s', str(response.status_code))
-        response = session.get(f'https://capi.puregym.com/api/v1/gyms/{str(home_gym_id)}/attendance',
-                headers=headers)
-        return response.json()['totalPeopleInGym']
+        
+        async with aiohttp.ClientSession() as session:
+            data = {
+                'grant_type': 'password',
+                'username': self._username,
+                'password': self._passeword,
+                'scope': 'pgcapi',
+                'client_id': 'ro.client'
+            }
+    
+            async with session.post('https://auth.puregym.com/connect/token',
+                                    headers=headers, data=data) as response:
+                if response.status == 200:
+                    auth_json = await response.json()
+                    authed = True
+                    headers['Authorization'] = 'Bearer ' + auth_json['access_token']
+                else:
+                    _LOGGER.error(await response.text())
+    
+            if not authed:
+                _LOGGER.error("Permission Error")
+    
+            async with session.get('https://capi.puregym.com/api/v1/member', headers=headers) as response:
+                if response.status == 200:
+                    home_gym_id = (await response.json())['homeGymId']
+                else:
+                    _LOGGER.error('Response %s', str(response.status))
+    
+            async with session.get(f'https://capi.puregym.com/api/v1/gyms/{str(home_gym_id)}/attendance',
+                                   headers=headers) as response:
+                return (await response.json())['totalPeopleInGym']
 
     async def async_set_title(self, value: str) -> None:
         """Get data from the API."""
